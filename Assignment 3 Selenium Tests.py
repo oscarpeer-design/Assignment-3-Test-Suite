@@ -10,7 +10,7 @@ class TestSuite():
         self.driver = driver
         self.driver.get(weblink)
 
-        self.email = "PeerOscar.Personal@gmail.com" #use an actual email
+        self.email = "Oscar.Peer247@gmail.com" #use an actual email
         self.password = "Happy_Hacker"
         self.phone = "0449570899"
 
@@ -26,6 +26,9 @@ class TestSuite():
         except:
             pass
     
+    def save_screenshot(self, screenshot_name = "screenshot.png"):
+        self.driver.save_screenshot(screenshot_name)
+
     def element_by_id(self, id):
         try:
             return self.driver.find_element(by = By.ID, value = id)
@@ -76,7 +79,8 @@ class TestSuite():
 
         successful_login_url = "https://ecommerce-playground.lambdatest.io/index.php?route=account/success"
         self.set_current_url()
-        assert self.current_url == successful_login_url, f"❌ URL mismatch: expected {successful_login_url}, got {self.current_url}"
+        self.save_screenshot("login.png")
+        assert self.current_url == successful_login_url, f"❌ URL mismatch: expected {successful_login_url}, got {self.current_url} \nThis means the login was unsuccessful"
         print("✅ URL is correct!")
         self.wait(3)
 
