@@ -72,21 +72,36 @@ class TestSuite():
         self.wait(1)
         chk_agree = self.element_by_id("input-agree")
         print(chk_agree)
-        driver.execute_script("arguments[0].click();", chk_agree)
+        self.driver.execute_script("arguments[0].click();", chk_agree)
         btn_submit = self.element_by_css("input.btn.btn-primary")
         btn_submit.click()
         
 
-        successful_login_url = "https://ecommerce-playground.lambdatest.io/index.php?route=account/success"
+        successful_registration_url = "https://ecommerce-playground.lambdatest.io/index.php?route=account/success"
         self.set_current_url()
         self.save_screenshot("login.png")
-        assert self.current_url == successful_login_url, f"❌ URL mismatch: expected {successful_login_url}, got {self.current_url} \nThis means the login was unsuccessful"
+        assert self.current_url == successful_registration_url, f"❌ URL mismatch: expected {successful_registration_url}, got {self.current_url} \nThis means the login was unsuccessful"
         print("✅ URL is correct!")
         self.wait(3)
 
+    def test_login_valid(self):
+        self.driver.get("https://ecommerce-playground.lambdatest.io/index.php?route=account/login")
+        input_email = self.element_by_name("email")
+        input_email.send_keys(self.email)
+        input_password = self.element_by_id("input-password")
+        input_password.send_keys(self.password)
+        self.wait(2)
+        btn_login = self.element_by_class("btn-primary")
+        self.driver.execute_script("arguments[0].click();", btn_login)
+        successful_login_url = "https://ecommerce-playground.lambdatest.io/index.php?route=account/account"
+        self.set_current_url()
+        assert self.current_url == successful_login_url, f"❌ URL mismatch: expected {successful_login_url}, got {self.current_url} \nThis means the login was unsuccessful"
+        print("✅ Login was successful!")
+        self.wait(3)
+
     def run_tests(self):
-        self.test_registration()
-        #self.test3()
+        #self.test_registration()
+        self.test_login_valid()
 
 if __name__ == '__main__':
     driver = webdriver.Chrome()
