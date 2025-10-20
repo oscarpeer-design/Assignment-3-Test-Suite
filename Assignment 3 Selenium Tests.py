@@ -76,7 +76,6 @@ class TestSuite():
         btn_submit = self.element_by_css("input.btn.btn-primary")
         btn_submit.click()
         
-
         successful_registration_url = "https://ecommerce-playground.lambdatest.io/index.php?route=account/success"
         self.set_current_url()
         self.save_screenshot("login.png")
@@ -99,11 +98,40 @@ class TestSuite():
         assert self.current_url == successful_login_url, f"❌ URL mismatch: expected {successful_login_url}, got {self.current_url} \nThis means the login was unsuccessful"
         print("✅ Login was successful!")
 
-    def test_login_invalid(self):
-        pass
+    def test_login_invalid_email(self):
+        self.driver.get("https://ecommerce-playground.lambdatest.io/index.php?route=account/login")
+        input_email = self.element_by_name("email")
+        input_email.send_keys("John.Smith@gmail.com.au")
+        input_password = self.element_by_id("input-password")
+        input_password.send_keys(self.password)
+        self.wait(2)
+        btn_login = self.element_by_css("input[value='Login']")
+        self.driver.execute_script("arguments[0].click();", btn_login)
+        self.wait(3)
+        successful_login_url = "https://ecommerce-playground.lambdatest.io/index.php?route=account/account"
+        self.set_current_url()
+        assert self.current_url != successful_login_url, f"❌ URL mismatch: expected {successful_login_url}, got {self.current_url} \nThis means the login was unsuccessful"
+        print("✅ Login was unsuccessful. The user shouldn't log in with an incorrect email address")
+
+    def test_login_invalid_password(self):
+        self.driver.get("https://ecommerce-playground.lambdatest.io/index.php?route=account/login")
+        input_email = self.element_by_name("email")
+        input_email.send_keys(self.email)
+        input_password = self.element_by_id("input-password")
+        input_password.send_keys("Unhappy_Hacker")
+        self.wait(2)
+        btn_login = self.element_by_css("input[value='Login']")
+        self.driver.execute_script("arguments[0].click();", btn_login)
+        self.wait(3)
+        successful_login_url = "https://ecommerce-playground.lambdatest.io/index.php?route=account/account"
+        self.set_current_url()
+        assert self.current_url != successful_login_url, f"❌ URL mismatch: expected {successful_login_url}, got {self.current_url} \nThis means the login was unsuccessful"
+        print("✅ Login was unsuccessful. The user shouldn't log in with an incorrect password")
 
     def run_tests(self):
         #self.test_registration()
+        self.test_login_invalid_email()
+        self.test_login_invalid_password()
         self.test_login_valid()
 
 if __name__ == '__main__':
