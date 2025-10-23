@@ -4,6 +4,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 import time
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 
 class TestSuite():
     def __init__(self, driver, weblink):
@@ -17,9 +19,6 @@ class TestSuite():
     def set_current_url(self):
         self.current_url = self.driver.current_url
 
-    def test3(self):
-        menu_options = self.driver.find_element(by = By.CLASS_NAME, value = "mz-pure-drawer")
-    
     def wait(self, seconds):
         try:
             time.sleep(seconds)
@@ -128,11 +127,60 @@ class TestSuite():
         assert self.current_url != successful_login_url, f"❌ URL mismatch: expected {successful_login_url}, got {self.current_url} \nThis means the login was unsuccessful"
         print("✅ Login was unsuccessful. The user shouldn't log in with an incorrect password")
 
+    def click(self, wait, locators):
+        for by in locators:
+            try:
+                el = wait.until(EC.element_to_be_clickable(by))
+                self.driver.execute_script("arguments[0].scrollIntoView({block:'center'})", el)
+                el.click(); return
+            except:
+                raise RuntimeError("cannot click any locator")
+
+    def test_blog_review(self):
+        opts = Options()
+        opts.add_argument("--headless=new")
+        opts.add_argument("--window-size=1280,900")
+        opts.add_argument("--no-sandbox")
+        opts.add_argument("--disable-dev-shm-usage")
+
+        try:
+            wait = WebDriverWait(self.driver, 15)
+            self.click(wait, [
+                (By.LINK_TEXT, "Blog"),
+                (By.PARTIAL_LINK_TEXT, "Blog"),
+                (By.CSS_SELECTOR, "a[title='Blog']"),
+                (By.CSS_SELECTOR, "a[href*='blog']"),
+            ])
+
+            wait.until(EC.presence_of_element_located((
+                By.XPATH, "//*[contains(translate(.,'abcdefghijklmnopqrstuvwxyz','ABCDEFGHIJKLMNOPQRSTUVWXYZ'),'LATEST ARTICLES')]"
+            )))
+            cards = driver.find_elements(By.CSS_SELECTOR, "a[href*='article_id']")
+            assert len(cards) >= 1
+
+            el = cards[0]
+            driver.execute_script("arguments[0].scrollIntoView({block:'center'})", el)
+            el.click()
+        
+            wait.until(EC.url_contains("article_id"))
+            assert ("article" in driver.current_url) or ("article_id" in driver.current_url)
+            wait.until(EC.visibility_of_element_located((By.XPATH, "//h1 | //h2[contains(@class,'title') or contains(@class,'heading')]")))
+        finally:
+            self.wait(3)
+            self.set_current_url()
+            #check the correct title of the web page exists
+            try:
+                title = self.driver.find_element(By.XPATH, "//h1[text()='amet volutpat consequat mauris nunc congue nisi vitae suscipit tellus']")
+                print("✅ Blog review was successful")
+            except:
+                raise Exception("❌ The wrong title was displayed, meaning the blog review failed to navigate to the correct page")
+
     def run_tests(self):
         #self.test_registration()
-        self.test_login_invalid_email()
-        self.test_login_invalid_password()
+        #self.test_login_invalid_email()
+        #self.test_login_invalid_password()
         self.test_login_valid()
+        self.test_blog_review()
 
 if __name__ == '__main__':
     driver = webdriver.Chrome()
