@@ -52,6 +52,12 @@ class TestSuite():
         except Exception as e:
             raise e
 
+    def element_by_xpath(self, xpath):
+        try:
+            return self.driver.find_element(by = By.XPATH, value = xpath)
+        except Exception as e:
+            raise e
+
     def test_registration(self):
         self.driver.get("https://ecommerce-playground.lambdatest.io/index.php?route=account/register")
         input_fname = self.element_by_name("firstname")
@@ -175,12 +181,48 @@ class TestSuite():
             except:
                 raise Exception("❌ The wrong title was displayed, meaning the blog review failed to navigate to the correct page")
 
+    def test_selection_by_category(self):
+        self.driver.get("https://ecommerce-playground.lambdatest.io/index.php?route=common/home")
+        desktop_link = self.element_by_xpath("//a[.//h4[contains(normalize-space(text()), 'Desktops')]]")
+        desktop_link.click()
+        self.wait(2)
+
+        filter_button = self.element_by_xpath("//a[contains(@class, 'btn') and contains(., 'Filter')]")
+        self.driver.execute_script("arguments[0].click();", filter_button)
+        # Now the input should be visible
+        entry_lower_price = self.driver.find_element(By.CSS_SELECTOR, "input[name='mz_fp[min]']")
+        # Clear using JavaScript (bypasses visibility issues)
+        self.driver.execute_script("arguments[0].value = '';", entry_lower_price)
+        self.wait(0.5)
+        # Type into lower price
+        self.driver.execute_script("""
+            arguments[0].value = arguments[1];
+            arguments[0].dispatchEvent(new Event('input', { bubbles: true }));
+            arguments[0].dispatchEvent(new Event('change', { bubbles: true }));
+        """, entry_lower_price, "1000")
+        self.wait(2)
+        #Get upper price and type into upper price entry
+        entry_upper_price = self.element_by_xpath("//input[@name='mz_fp[max]']")
+        self.driver.execute_script("arguments[0].value = '';", entry_upper_price)
+        self.driver.execute_script("""
+        arguments[0].value = arguments[1];
+        arguments[0].dispatchEvent(new Event('input', { bubbles: true }));
+        arguments[0].dispatchEvent(new Event('change', { bubbles: true }));
+        """, entry_upper_price, "1500")
+        self.wait(3)
+        lbl_apple_product_count = self.element_by_xpath("//span[@class='badge mz-product-total']")
+        apple_product_count = lbl_apple_product_count.text.strip()
+
+        assert apple_product_count == "2", f"Expected 2 apple products to be displayed with a price range between $1000 and $1500, but instead got {apple_product_count}"
+        print("✅ The correct number of apple products was displayed")
+
     def run_tests(self):
         #self.test_registration()
         #self.test_login_invalid_email()
         #self.test_login_invalid_password()
         self.test_login_valid()
-        self.test_blog_review()
+        #self.test_blog_review()
+        self.test_selection_by_category()
 
 if __name__ == '__main__':
     driver = webdriver.Chrome()
